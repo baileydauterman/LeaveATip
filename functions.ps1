@@ -69,7 +69,6 @@ function Write-TipAsk {
         $RightPercentage = 25
     )
 
-    $lineFormat = "{0}{1}{2}"
     $left = Write-Box -Text "$LeftPercentage%" -VerticalPadding 2 -HorizontalPadding 9
     $middle = Write-Box -Text "$MiddlePercentage%" -VerticalPadding 2 -HorizontalPadding 9
     $right = Write-Box -Text "$RightPercentage%" -VerticalPadding 2 -HorizontalPadding 9
@@ -82,11 +81,10 @@ function Write-TipAsk {
 
     $customLength = $joined[0].Length - 4
     $custStr = "Custom".PadLeft($customLength / 2).PadRight($customLength)
+    $latStr = "Leave a tip?".PadLeft(($customLength+12) / 2).PadRight($customLength)
 
-    $customStr = $lineFormat -f $spaces, $custStr, $spaces
-    $latStr = $lineFormat -f $spaces, "Leave a tip?", $spaces
 
-    $joined += @(Write-Box -Text $customStr -VerticalPadding 2 -HorizontalPadding 0)
+    $joined += @(Write-Box -Text $custStr -VerticalPadding 2 -HorizontalPadding 0)
 
     Write-Host "`n`n$latStr`n`n"
     Write-Host ($joined | Out-String) -BackgroundColor Blue
