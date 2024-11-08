@@ -50,11 +50,11 @@ function Write-Box {
     for ($i = 0; $i -lt $VerticalPadding; $i++) {
         $retVals += ($lineFormat -f $lines.Vertical, $VertPaddingText, $lines.Vertical)
     }
-    $retVals +=  $line
+    $retVals += $line
     for ($i = 0; $i -lt $VerticalPadding; $i++) {
-        $retVals +=  ($lineFormat -f $lines.Vertical, $VertPaddingText, $lines.Vertical)
+        $retVals += ($lineFormat -f $lines.Vertical, $VertPaddingText, $lines.Vertical)
     }
-    $retVals +=  $bottom
+    $retVals += $bottom
 
     return $retVals
 }
@@ -80,19 +80,13 @@ function Write-TipAsk {
         $joined += "$($left[$i]) $($middle[$i]) $($right[$i])"
     }
 
-    $customLength = [Math]::Floor(($joined[0].Length - 12) / 2)
-    $spaces = " " * $customLength
-    
-    if ($customLength % 2 -eq 0){
-        $customStr = $lineFormat -f $spaces, " Custom", $spaces
-        $latStr = $lineFormat -f $spaces, " Leave a tip?", $spaces
-    }
-    else {
-        $customStr = $lineFormat -f $spaces, " Custom", $spaces
-        $latStr = $lineFormat -f $spaces, "Leave a tip?", $spaces
-    }
+    $customLength = $joined[0].Length - 4
+    $custStr = "Custom".PadLeft($customLength / 2).PadRight($customLength)
 
-    $joined += @(Write-Box -Text $customStr -VerticalPadding 2)
+    $customStr = $lineFormat -f $spaces, $custStr, $spaces
+    $latStr = $lineFormat -f $spaces, "Leave a tip?", $spaces
+
+    $joined += @(Write-Box -Text $customStr -VerticalPadding 2 -HorizontalPadding 0)
 
     Write-Host "`n`n$latStr`n`n"
     Write-Host ($joined | Out-String) -BackgroundColor Blue
