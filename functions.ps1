@@ -1,3 +1,20 @@
+function Get-Repeated {
+    param(
+        [object]
+        $Value,
+        [int]
+        $Count,
+        [switch]
+        $AsString
+    )
+
+    if ($AsString) {
+        [System.Linq.Enumerable]::Repeat($Value, $Count) -join ""
+    }
+    else {
+        [System.Linq.Enumerable]::Repeat($Value, $Count)
+    }
+}
 function Write-Box {
     param (
         [string]
@@ -5,58 +22,55 @@ function Write-Box {
         # Number of characters to pad content on each side of the box
         [int]
         $HorizontalPadding = 1,
+        # Number of lines to pad above and below the box
         [int]
-        $VerticalPadding = 0
+        $VerticalPadding = 0,
+        # Make the box take up the full terminal screen
+        [switch]
+        $FullScreen
     )
 
-    $corners = @{
-        TopRight    = [char]0x256E # ╮
-        TopLeft     = [char]0x256D # ╭
-        BottomRight = [char]0x256F # ╯
-        BottomLeft  = [char]0x2570 # ╰
-    }
+    begin {
+        $BoxingLines = @{
+            TopLeft     = [char]0x256D # ╭
+            BottomLeft  = [char]0x2570 # ╰
+            TopRight    = [char]0x256E # ╮
+            BottomRight = [char]0x256F # ╯
+            Horizontal = [char]0x2500 # ─
+            Vertical   = [char]0x2502 # │
+        }
+
+        $lineFormat = "{0}{1}{2}"
+        $padding = $HorizontalPadding * 2
     
-    $lines = @{
-        Horizontal = [char]0x2500 # ─
-        Vertical   = [char]0x2502 # │
+        $splitString = $Text.Split("`n")
+        # Length of longest string + sum of horizontal padding
+        $contentWidth = ($splitString | Sort-Object | Select-Object -First 1).Length + $padding
+        $topBottomLine = Get-Repeated -Value $BoxingLines.Horizontal -Count $contentWidth -AsString
+
+        # return top line
+        $lineFormat -f $BoxingLines.TopLeft, $topBottomLine, $BoxingLines.TopRight
     }
+    process {
+        if ($VerticalPadding -gt 0) {
+            $PaddedVerticalLine = $lineFormat -f $BoxingLines.Vertical, "".PadLeft($contentWidth), $BoxingLines.Vertical
+        }
+
+        Get-Repeated $PaddedVerticalLine $VerticalPadding
+
+        $horizontalPaddingText = "".PadLeft($HorizontalPadding)
+
+        foreach ($line in $splitString) {
+            $paddedLine = $lineFormat -f $horizontalPaddingText, $line, $horizontalPaddingText
+            $lineFormat -f $BoxingLines.Vertical, $paddedLine.PadLeft(($contentWidth -2) / 2).PadRight($contentWidth), $BoxingLines.Vertical
+        }
     
-    $len = $Text.Length
-    $width = [Console]::WindowWidth
-    $outsidePadding = $HorizontalPadding * 2
-
-    if ($len + $outsidePadding -gt $width) {
-        $contentWidthPadding = $width - $outsidePadding + 2
-    }
-    else {
-        $contentWidthPadding = $len + $outsidePadding + 2
+        Get-Repeated $PaddedVerticalLine $VerticalPadding
     }
 
-    
-    $lineFormat = "{0}{1}{2}"
-    $Text = "$(" " * $HorizontalPadding) $Text $(" " * $HorizontalPadding)"
-
-    if ($VerticalPadding -gt 0) {
-        $VertPaddingText = " " * $Text.Length
+    end {
+        $lineFormat -f $BoxingLines.BottomLeft, $topBottomLine, $BoxingLines.BottomRight
     }
-
-    $retVals = @()
-
-    $top = $lineFormat -f $corners.TopLeft, ([string]$lines.Horizontal * $contentWidthPadding), $corners.TopRight
-    $line = $lineFormat -f $lines.Vertical, $Text, $lines.Vertical
-    $bottom = $lineFormat -f $corners.BottomLeft, ([string]$lines.Horizontal * $contentWidthPadding), $corners.BottomRight
-
-    $retVals += $top
-    for ($i = 0; $i -lt $VerticalPadding; $i++) {
-        $retVals += ($lineFormat -f $lines.Vertical, $VertPaddingText, $lines.Vertical)
-    }
-    $retVals += $line
-    for ($i = 0; $i -lt $VerticalPadding; $i++) {
-        $retVals += ($lineFormat -f $lines.Vertical, $VertPaddingText, $lines.Vertical)
-    }
-    $retVals += $bottom
-
-    return $retVals
 }
 
 function Write-TipAsk {
@@ -79,12 +93,12 @@ function Write-TipAsk {
         $joined += "$($left[$i]) $($middle[$i]) $($right[$i])"
     }
 
-    $customLength = $joined[0].Length - 4
-    $custStr = "Custom".PadLeft($customLength / 2).PadRight($customLength)
-    $latStr = "Leave a tip?".PadLeft(($customLength+12) / 2).PadRight($customLength)
+    $totalLineLength = $joined[0].Length - 4
+    $custStr = "Custom".PadLeft($totalLineLength / 2).PadRight($totalLineLength)
+    $latStr = "Leave a tip?".PadLeft(($totalLineLength+12) / 2).PadRight($totalLineLength)
 
 
-    $joined += @(Write-Box -Text $custStr -VerticalPadding 2 -HorizontalPadding 0)
+    $joined += @(Write-Box -Text $custStr -VerticalPadding 2)
 
     Write-Host "`n`n$latStr`n`n"
     Write-Host ($joined | Out-String) -BackgroundColor Blue
