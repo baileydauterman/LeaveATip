@@ -17,7 +17,7 @@ Write-TipAsk 55 65 75
 Don't want to use PowerShell? You can copy the raw text from: 
 
 ```bash
-curl https://gist.githubusercontent.com/baileydauterman/dd3fb3a9398aaaeb55d0d00f66cddb05/raw/8a7653ad980b0698052a6223ba37d30e7aa19bac/LeaveATip.txt
+curl https://gist.githubusercontent.com/baileydauterman/dd3fb3a9398aaaeb55d0d00f66cddb05/raw
 ```
 
 (This is satire and only writes the tip on the screen. Will not do anything other than that. You will not be compensated for using it.)
